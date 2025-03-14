@@ -21,12 +21,16 @@ namespace todo
         {
             var todos = await db.TodoItems.ToListAsync();
 
-            await context.Response.WriteJsonAsync(todos, _options);
+            //await context.Response.WriteJsonAsync(todos, _options);
+            context.Response.ContentType = "application/json";
+            await JsonSerializer.SerializeAsync(context.Response.Body, todos, _options);
+
         }
 
         public async Task GetAsync(TodoDbContext db, HttpContext context)
         {
-            if (!context.Request.RouteValues.TryGet("id", out int id))
+            //if (!context.Request.RouteValues.TryGet("id", out int id))
+            if (!context.Request.RouteValues.TryGetValue("id", out var idValue) || !int.TryParse(idValue?.ToString(), out int id))
             {
                 context.Response.StatusCode = 400;
                 return;
@@ -39,12 +43,15 @@ namespace todo
                 return;
             }
 
-            await context.Response.WriteJsonAsync(todo, _options);
+            //await context.Response.WriteJsonAsync(todo, _options);
+            context.Response.ContentType = "application/json";
+            await JsonSerializer.SerializeAsync(context.Response.Body, todo, _options);
         }
 
         public async Task PostAsync(TodoDbContext db, HttpContext context)
         {
-            var todo = await context.Request.ReadJsonAsync<TodoItem>(_options);
+            //var todo = await context.Request.ReadJsonAsync<TodoItem>(_options);
+             var todo = await JsonSerializer.DeserializeAsync<TodoItem>(context.Request.Body, _options);
 
             if (await db.TodoItems.ContainsAsync(todo))
             {
@@ -60,13 +67,15 @@ namespace todo
 
         public async Task PutAsync(TodoDbContext db, HttpContext context)
         {
-            if (!context.Request.RouteValues.TryGet("id", out int id))
+            //if (!context.Request.RouteValues.TryGet("id", out int id))
+            if (!context.Request.RouteValues.TryGetValue("id", out var idValue) || !int.TryParse(idValue?.ToString(), out int id))
             {
                 context.Response.StatusCode = 400;
                 return;
             }
 
-            var todo = await context.Request.ReadJsonAsync<TodoItem>(_options);
+            //var todo = await context.Request.ReadJsonAsync<TodoItem>(_options);
+            var todo = await JsonSerializer.DeserializeAsync<TodoItem>(context.Request.Body, _options);
             todo.Id = id;
 
             db.TodoItems.Update(todo);
@@ -76,7 +85,8 @@ namespace todo
 
         public async Task DeleteAsync(TodoDbContext db, HttpContext context)
         {
-            if (!context.Request.RouteValues.TryGet("id", out int id))
+            //if (!context.Request.RouteValues.TryGet("id", out int id))
+            if (!context.Request.RouteValues.TryGetValue("id", out var idValue) || !int.TryParse(idValue?.ToString(), out int id))
             {
                 context.Response.StatusCode = 400;
                 return;
